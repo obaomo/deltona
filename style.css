@@ -1,31 +1,47 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Stepehen Obaido: My Neighborhood Map</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="title">
-        <h1>My Neighborhood Map</h1>
-    </div>
-    <hr>
-    <button data-bind="click: hide-listing, enable: ShowListing().length > 0">hide</button>
-    <button data-bind="click: show-listing, enable: allLocations().length > 1">Show</button>
-    <p>For Specific Search :-)</p>
-    <select multiple="multiple" height="5" data-bind="options:allLocations, selectedOptions:selectedLocations"></select>
-    <form data-bind="submit:filterLocations"><input type="text" data-bind='value:filteredList, valueUpdate: "click"' />
-        <button type="submit" data-bind="enable: filteredList().length > 0">filter</button>
-    </form>
-    <hr>
-    <div id="map"></div>
-    <div id="map-error"></div>
-    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
-    <script src="app.js"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBMJREI9NZGQUi9kBNyniHZtfgP9aUWywk&libraries=places&callback=initmap" onerror="googleError()">
-    </script>
-</body>
-</html>
 
+.body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	font-family: sans-serif;
+}
+
+h1 {
+    color: #4d90fe;
+    font-size: 22px;
+    margin: 0 0 10px 0;
+    text-align: center;
+}
+
+hr {
+    color: #4d90fe;
+}
+
+#data-bind {
+    width: 100%;
+    color: #4d90fe;
+    background-color: #4d90fe;
+    padding: 5px 11px 0px 11px;
+}
+
+.alllocation {
+    position: absolute; /*Works best when absolutely positioned or floated*/
+    width: 0px; 
+    transition: all 0.15s;
+    right: 0;
+    top: 50px;
+    background-color: white;
+    margin: 0;
+}
+
+.filteredlist{
+    float:left;
+    min-width:100px;
+    padding:0;
+    margin: 0;
+}
+
+.search {
+	max-width: 120px;
+	}
+}
