@@ -1,17 +1,80 @@
+
+var map;
+
 function initMap() {
-    
+
     map = new google.maps.Map(document.getElementById('map'), {
         center: {
             lat: 28.9288298,
             lng: -81.2354897
         },
         zoom: 13,
-        
         styles: styles,
         mapTypeControl: false
     });
 
-    var locations = [{
+var styles = [
+    {
+        "featureType": "administrative",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#444444"
+            }
+        ]
+    },
+    {
+        "featureType": "landscape",
+        "elementType": "all",
+        "stylers": [
+            {
+                "color": "#f2f2f2"
+            }
+        ]
+    },
+    {
+        "featureType": "poi",
+        "elementType": "all",
+        "stylers": [
+            {
+                "visibility": "off"
+            }
+        ]
+    },
+    {
+        "featureType": "road",
+        "elementType": "all",
+        "stylers": [
+            {
+                "saturation": -100
+            },
+            {
+                "lightness": 45
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway",
+        "elementType": "all",
+        "stylers": [
+            {
+                "visibility": "simplified"
+            }
+        ]
+    },
+    {
+        "featureType": "road.arterial",
+        "elementType": "labels.icon",
+        "stylers": [
+            {
+                "visibility": "off"
+            }
+        ]
+    } 
+];
+
+
+    allLocations = [{
         title: 'Stephen Home',
         location: {
             lat: 28.9288298,
@@ -48,14 +111,19 @@ function initMap() {
             lng: -81.231004
         }
     }];
+}
 
-var filterText = ko.observable("");
+var filteredText = ko.observable("");
+var infowindow = ko.observable();
 
 var wikiURL ='https://en.wikipedia.org/w/api.php?action=opensearch&format=json&callback=wikiCallBack&search=';
 
-var location = function (data, map){
+var allLocation = function (data, map){
     var self = this;
-    this.position = ko.observable(data.position);
+    this.filteredList = ko.observable("");
+    this.allLocations = ko.observableArray([]); 
+    this.showListings = ko.observableArray([]);                                
+    this.position = ko.observable(data.location);
     this.title = ko.observable(data.title);
     this.marker = ko.observable();
     this.searchWiki = data.search;
@@ -66,9 +134,12 @@ var location = function (data, map){
         map: map,
         title: this.title()
       });
-    self.marker.setAnimation(null); 
+    self.marker.setAnimation(null);
 
-    
+    document.getElementById('show-listing').addListener('click', show);
+    document.getElementById('hide-listing').addListener('click', hide);
+        };
+
     this.visible = ko.computed(function(){
         if (filterText().length > 0){
             return (self.title().toLowerCase().indexOf(filterText().toLowerCase()) > -1);
@@ -89,100 +160,60 @@ var location = function (data, map){
     });
 
     this.toggleBounce = function() {
-        if (self.marker.getAnimation() !== null) 
+        if (self.marker.getAnimation() !== null)
         {
             self.marker.setAnimation(null);
-        } 
-        else 
+        }
+        else
         {
             self.marker.setAnimation(google.maps.Animation.BOUNCE);
             setTimeout(function(){
                 self.marker.setAnimation(null);
             }, 2000);
         }
-    };
 };
 
 var ViewModel = function(){
     var self = this;
- 
-    this.map = new google.maps.Map(document.getElementById('map'), {
-        center: initLocation,
-        zoom: 13
-    });
-  
-    this.locationList = ko.observableArray([]);
-        mylocations.forEach(function(locationItem){
-            self.locationList.push(new location(locationItem, self.map));
+
+    this.allLocationList = ko.observableArray([]);
+    allLocations.forEach(function(allLocationItem){
+        self.allLocationList.push(new allLocation(allLocationItem, map));
     });
 
-    this.locationList().forEach(function(place){
-        google.maps.event.addListener(location.marker, 'click', function () {
-            self.clickLocation(location);
+    this.allLocationList().forEach(function(place){
+        google.maps.event.addListener(place.marker, 'click', function () {
+            self.clickLocation(place);
         });
     });
 
-    var infowindow = new google.maps.InfoWindow();
+    var infowindow = function() {
     this.clickLocation = function(location){
         infowindow.setContent(location.content);
         infowindow.open(this.map, location.marker);
         location.toggleBounce();
     };
 
-    self.filteredList = ko.computed(function(){
-        var filtered = [];
-        this.locationList().forEach(function(location){
-            if (location.visible())
-            {
-                filtered.push(location);
-            }
-        });
-        return filtered;
-    }, this);
+    var trafficLayer = new google.maps.TrafficLayer();
+    this.trafficLayer = ko.observable();
+        trafficLayer.setMap(map);
+    };
+
+    this.allLocation = function () {
+        if ((this.filteredList() !=="") && (this.allLocations.indexOf(this.filteredList()) < 0)) 
+            this.allLocations.push(this.filteredList());
+        this.filteredList(""); 
+    };
+ 
+    this.hidelistings = function () {
+        this.allLocations.hideAll(this.showListings());
+        this.showListings([]);
+    };
+ 
+    this.showListings = function() {
+        this.allLocations.show();
+    };
+ 
+ko.applyBindings(new ViewModel());
 };
-    
-    this.showListings() {
-        var bounds = new google.maps.LatLngBounds();
-        for (var i = 0; i < markers.length; i++) {
-            markers[i].setMap(map);
-            bounds.extend(markers[i].position);
-        }
-        map.fitBounds(bounds);
-    }
-
-    this.hideMarkers(markers) {
-        for (var i = 0; i < markers.length; i++) {
-            markers[i].setMap(null);
-        }
-    }
-
-    document.getElementById('show-listings').addEventListener('click',
-        showListings);
-    document.getElementById('hide-listings').addEventListener('click', function() {
-        hideMarkers(markers);
-    });
-    window.addEventListener('resize', function(e) {
-        map.fitBounds(mapBounds);
-        $("#map-canvas").height($(window).height());
-    });
-
-    this.makeMarkerIcon = ko.observable(markerColor) {
-    var markerImage = new google.maps.MarkerImage(
-        'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|' +
-        markerColor +
-        '|40|_|%E2%80%A2',
-            new google.maps.Size(21, 34),
-            new google.maps.Point(0, 0),
-            new google.maps.Point(10, 34),
-            new google.maps.Size(21, 34));
-        return markerImage;
-    }
-
-function start(){
-    ko.applyBindings(new ViewModel());
-}
-
-function googleError() {
-    alert("failed to get google map resources");
-}
 
