@@ -1,104 +1,31 @@
-@media screen and (min-width: 300px)and(max-width: 600px) {
-.body {
-	height: 100%;
-	margin: 0;
-	padding: 0;
-	font-family: sans-serif;
-}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stepehen Obaido: My Neighborhood Map</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="title">
+        <h1>My Neighborhood Map</h1>
+    </div>
+    <hr>
+    <button data-bind="click: hide-listing, enable: ShowListing().length > 0">hide</button>
+    <button data-bind="click: show-listing, enable: allLocations().length > 1">Show</button>
+    <p>For Specific Search :-)</p>
+    <select multiple="multiple" height="5" data-bind="options:allLocations, selectedOptions:selectedLocations"></select>
+    <form data-bind="submit:filterLocations"><input type="text" data-bind='value:filteredList, valueUpdate: "click"' />
+        <button type="submit" data-bind="enable: filteredList().length > 0">filter</button>
+    </form>
+    <hr>
+    <div id="map"></div>
+    <div id="map-error"></div>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
+    <script src="app.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBMJREI9NZGQUi9kBNyniHZtfgP9aUWywk&libraries=places&callback=initmap" onerror="googleError()">
+    </script>
+</body>
+</html>
 
-/*html {
-	height: 100%;
-	margin: 0;
-	padding: 0;
-	font-family: sans-serif;
-}*/
-
-#map {
-	height: 100%;
-	width: 100%;
-}
-
-[class *='col-'] {
-	float: left;
-}
-
-.col-xs-2 {
-	width: 16.6%;
-	border-right: 1px solid black;
-	-webkit-box-sizing: border-box;
-	background-color: orange;
-}
-
-.col-md-10 {
-	width: 83.3%;
-}
-
-.window_size {
-	height: 600px; /* fallback for Opera Mini and old browsers */
-	height: 100vh; /* 100 percent of viewport height *
-	}
-	
-.filterlist {
-    position: absolute; 
-    cursor: pointer;
-}
-
-.input {
-	display: block;
-	transition: all 0.15s; 
-    background: #2C3E50;
-    border: none;
-    color: #fff;
-    cursor: pointer;
-    position: absolute;
-    right: 50px;
-    top:0;
-    font: normal 16px/30px 'Open Sans', sans-serif;
-    height: 50px;
-    padding: 0 0 0 0;
-    text-align: left;
-    text-indent: 8px;
-    width: 0px;
-}
-
-/*.search {
-	display: block;
-    background: none;
-    border: none;
-    height: 0;
-    padding: 0;
-    text-indent: -9999px;
-    width: 0;
-}*/
-
-/*Styling for the list*/
-.location {
-    position: absolute; /*Works best when absolutely positioned or floated*/
-    width: 0px; 
-    transition: all 0.15s;
-    right: 0;
-    top: 50px;
-    background-color: white;
-    margin: 0;
-}
-
-.filteredlist{
-    float:left;
-    width:100%;
-    padding:0;
-    margin: 0;
-}
-
-/*for styling purposes, make the first element in the list...*/
-.in:first-child{
-    margin:0em 0 0.2em;
-}
-/*for styling purposes, make the last element in the list...*/
-.in:last-child{
-    margin:0.2em 0em 0em;
-}
-
-	#search_bar {
-		max-width: 120px;
-	}
-}
