@@ -1,5 +1,4 @@
-
-var map;
+var map, locations;
 
 function initMap() {
 
@@ -9,72 +8,10 @@ function initMap() {
             lng: -81.2354897
         },
         zoom: 13,
-        styles: styles,
-        mapTypeControl: false
+        mapTypeControl: false,
     });
 
-var styles = [
-    {
-        "featureType": "administrative",
-        "elementType": "labels.text.fill",
-        "stylers": [
-            {
-                "color": "#444444"
-            }
-        ]
-    },
-    {
-        "featureType": "landscape",
-        "elementType": "all",
-        "stylers": [
-            {
-                "color": "#f2f2f2"
-            }
-        ]
-    },
-    {
-        "featureType": "poi",
-        "elementType": "all",
-        "stylers": [
-            {
-                "visibility": "off"
-            }
-        ]
-    },
-    {
-        "featureType": "road",
-        "elementType": "all",
-        "stylers": [
-            {
-                "saturation": -100
-            },
-            {
-                "lightness": 45
-            }
-        ]
-    },
-    {
-        "featureType": "road.highway",
-        "elementType": "all",
-        "stylers": [
-            {
-                "visibility": "simplified"
-            }
-        ]
-    },
-    {
-        "featureType": "road.arterial",
-        "elementType": "labels.icon",
-        "stylers": [
-            {
-                "visibility": "off"
-            }
-        ]
-    } 
-];
-
-
-    allLocations = [{
+    locations = [{
         title: 'Stephen Home',
         location: {
             lat: 28.9288298,
@@ -113,16 +50,12 @@ var styles = [
     }];
 }
 
-var filteredText = ko.observable("");
-var infowindow = ko.observable();
+var filterText = ko.observable("");
 
 var wikiURL ='https://en.wikipedia.org/w/api.php?action=opensearch&format=json&callback=wikiCallBack&search=';
 
-var allLocation = function (data, map){
+var Location = function (data, map){
     var self = this;
-    this.filteredList = ko.observable("");
-    this.allLocations = ko.observableArray([]); 
-    this.showListings = ko.observableArray([]);                                
     this.position = ko.observable(data.location);
     this.title = ko.observable(data.title);
     this.marker = ko.observable();
@@ -133,12 +66,9 @@ var allLocation = function (data, map){
         position: this.position(),
         map: map,
         title: this.title()
-      });
-    self.marker.setAnimation(null);
-
-    document.getElementById('show-listing').addListener('click', show);
-    document.getElementById('hide-listing').addListener('click', hide);
-        };
+      });;
+    this.marker.setAnimation(null);
+    }
 
     this.visible = ko.computed(function(){
         if (filterText().length > 0){
@@ -159,6 +89,7 @@ var allLocation = function (data, map){
             alert("failed to get wikipedia resources");
     });
 
+
     this.toggleBounce = function() {
         if (self.marker.getAnimation() !== null)
         {
@@ -171,49 +102,61 @@ var allLocation = function (data, map){
                 self.marker.setAnimation(null);
             }, 2000);
         }
-};
+    };
 
 var ViewModel = function(){
     var self = this;
 
-    this.allLocationList = ko.observableArray([]);
-    allLocations.forEach(function(allLocationItem){
-        self.allLocationList.push(new allLocation(allLocationItem, map));
+    this.locationList = ko.observableArray([]);
+    locations.forEach(function(locationItem){
+        self.locationList.push(new Location(locationItem, map));
     });
 
-    this.allLocationList().forEach(function(place){
+    this.locationList().forEach(function(place){
         google.maps.event.addListener(place.marker, 'click', function () {
             self.clickLocation(place);
         });
     });
 
-    var infowindow = function() {
+    var infowindow = new google.maps.InfoWindow();
     this.clickLocation = function(location){
-        infowindow.setContent(location.content);
+        infowindow.setContent('<div>' + marker.title + '<div>'/*location.content*/);
         infowindow.open(this.map, location.marker);
         location.toggleBounce();
     };
 
-    var trafficLayer = new google.maps.TrafficLayer();
-    this.trafficLayer = ko.observable();
-        trafficLayer.setMap(map);
-    };
+    self.filteredList = ko.computed(function(){
+        var filtered = [];
+        this.locationList().forEach(function(location){
+            if (location.visible())
+            {
+                filtered.push(location);
+            }
+        });
+        return filtered;
+    }, this);
 
-    this.allLocation = function () {
-        if ((this.filteredList() !=="") && (this.allLocations.indexOf(this.filteredList()) < 0)) 
-            this.allLocations.push(this.filteredList());
-        this.filteredList(""); 
-    };
- 
-    this.hidelistings = function () {
-        this.allLocations.hideAll(this.showListings());
-        this.showListings([]);
-    };
- 
     this.showListings = function() {
-        this.allLocations.show();
-    };
- 
-ko.applyBindings(new ViewModel());
+        var bounds = new google.maps.LatLngBounds();
+        for (var i = 0; i < markers.length; i++) {
+            markers[i].setMap(map);
+            bounds.extend(markers[i].position);
+        }
+        map.fitBounds(bounds);
+    }
+
+    this.hideMarkers = function (markers) {
+        for (var i = 0; i < markers.length; i++) {
+            markers[i].setMap(null);
+        }
+    }
 };
 
+function initMap() {
+    initMap();
+    ko.applyBindings(new ViewModel());
+}
+
+function googleError() {
+    alert("failed to get google map resources");
+}
